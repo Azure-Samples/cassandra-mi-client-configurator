@@ -1,11 +1,11 @@
 # Azure Managed Instance for Apache Cassandra Client Configurator
 
-The Azure  Client configurator is a tool designed to assist you in configuring a hybrid cluster and simplifying the migration process to Azure Managed Instance for Apache Cassandra. If you currently have on-premises datacenters or are operating in a self-hosted environment, you can leverage Azure Managed Instance for Apache Cassandra to seamlessly incorporate additional datacenters into your cluster while effectively maintaining them.
+The Azure  Client configurator is a tool designed to assist you in configuring a hybrid cluster and simplifying the migration process to [Azure Managed Instance for Apache Cassandra](https://learn.microsoft.com/azure/managed-instance-apache-cassandra/introduction). If you currently have on-premises datacenters or are operating in a self-hosted environment, you can leverage Azure Managed Instance for Apache Cassandra to seamlessly incorporate additional datacenters into your cluster while effectively maintaining them.
 
 ## Prerequisites
 
-* Ensure that both the Azure Managed Instance and on-premises Cassandra cluster are located on the same virtual network. If not, it will be necessary to establish network peering.
-* The cluster name for both the Managed cluster and local cluster should be the same.
+* Ensure that both the Azure Managed Instance and on-premises Cassandra cluster are located on the same virtual network. If not, it will be necessary to establish network peering or other means of connectivity (e.g. express route).
+* The cluster name for both the Managed cluster and local cluster must be the same.
         * In the cassandra.yaml file ensure the storage port is set to 7001 and  the cluster name is same as the managed cluster:
 
  ```bash
