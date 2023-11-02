@@ -34,14 +34,15 @@ parser = argparse.ArgumentParser()
 # Cluster args
 parser.add_argument('--subscription-id', type=str, required=True, help='Subscription ID of the Azure managed cluster')
 parser.add_argument('--cluster-resource-group', type=str, required=True, help='Resource group of the Azure managed cluster')
-parser.add_argument('--cluster-name', type=str, required=True, help='Cluster name of the Azure managed cluster')
+parser.add_argument('--cluster-name', type=str, required=True, help='Cluster name of the Azure managed cluster (should be the same as on-prem cluster)')
 parser.add_argument('--cluster-name-override', type=str)
 parser.add_argument('--initial-password', type=str, required=True)
 parser.add_argument('--location', type=str, required=True, help='Location of the Azure managed cluster')
 parser.add_argument('--seed-nodes', nargs='+', type=str, required=True, help='Seed nodes of existing cluster')
 
 # Data center args
-parser.add_argument('--data-center-name', type=str, required=True, help='Data center name of the Azure managed cluster')
+parser.add_argument('--dc-name', nargs='+', type=str, required=True, help='Data center name(s) of the on-prem cluster')
+parser.add_argument('--mi-dc-name', type=str, required=True, help='Data center name of the Azure managed cluster')
 parser.add_argument('--node-count', type=int, default=3, help='Node count of the Azure managed cluster')
 parser.add_argument('--sku', type=str, required=True, help='SKU to use for the nodes of the Azure managed cluster')
 parser.add_argument('--disk-capacity', type=int, default=4, help='Disk capacity for each node of the Azure managed cluster')
@@ -64,7 +65,8 @@ cluster_name_override = args.cluster_name_override
 initial_password = args.initial_password
 location = args.location
 seed_nodes = args.seed_nodes
-data_center_name = args.data_center_name
+dc_name = args.dc_name
+mi_dc_name = args.mi_dc_name
 node_count = args.node_count
 sku = args.sku
 disk_capacity = args.disk_capacity
@@ -162,15 +164,15 @@ with CosmosDBManagementClient(credential=DefaultAzureCredential(), subscription_
         response = cosmosdb_client.cassandra_data_centers.get(
             resource_group_name=cluster_resource_group,
             cluster_name=cluster_name,
-            data_center_name=data_center_name
+            data_center_name=mi_dc_name
         )
-        logging.warning(f'Using existing data center {data_center_name} in cluster {cluster_name} in resource group {cluster_resource_group}')
+        logging.warning(f'Using existing data center {mi_dc_name} in cluster {cluster_name} in resource group {cluster_resource_group}')
     except ResourceNotFoundError as e:
-        logging.info(f'Creating data center {data_center_name} in cluster {cluster_name} in resource group {cluster_resource_group}')
+        logging.info(f'Creating data center {mi_dc_name} in cluster {cluster_name} in resource group {cluster_resource_group}')
         response = cosmosdb_client.cassandra_data_centers.begin_create_update(
             resource_group_name=cluster_resource_group,
             cluster_name=cluster_name,
-            data_center_name=data_center_name,
+            data_center_name=mi_dc_name,
             body=DataCenterResource(
                 properties=DataCenterResourceProperties(
                     delegated_subnet_id=subnet_id,
@@ -301,6 +303,7 @@ with CosmosDBManagementClient(credential=DefaultAzureCredential(), subscription_
                         delegated_management_subnet_id=subnet_id,                     
                         gossip_certificates=managed_cluster_certs,
                         external_seed_nodes=[SeedNode(ip_address=seed_node) for seed_node in seed_nodes],
+                        external_data_centers=[dc_name],
                         external_gossip_certificates=[Certificate(pem=gossip_certificates_file.read())]
                     )
                 )
