@@ -1,57 +1,62 @@
-# Project Name
+# Azure Managed Instance for Apache Cassandra Client Configurator
 
-(short, 1-3 sentenced, description of the project)
+The Azure  Client configurator is a tool designed to assist you in configuring a hybrid cluster and simplifying the migration process to [Azure Managed Instance for Apache Cassandra](https://learn.microsoft.com/azure/managed-instance-apache-cassandra/introduction). If you currently have on-premises datacenters or are operating in a self-hosted environment, you can use Azure Managed Instance for Apache Cassandra to seamlessly incorporate extra datacenters into your cluster while effectively maintaining them.
 
-## Features
+## Prerequisites
 
-This project framework provides the following features:
+* Ensure that both the Azure Managed Instance and on-premises Cassandra cluster are located on the same virtual network. If not, it is necessary to establish network peering or other means of connectivity (for example, express route).
+* The cluster name for both the Managed cluster and local cluster must be the same.
+        * In the cassandra.yaml file ensure the storage port is set to 7001 and  the cluster name is same as the managed cluster:
 
-* Feature 1
-* Feature 2
-* ...
+ ```bash
+cluster_name: managed_cluster-name
+storage_port: 7001
+ ```
 
-## Getting Started
+```sql
+UPDATE system.local SET cluster_name = 'managed_cluster-name' where key='local';
+```
 
-### Prerequisites
+## Installation
 
-(ideally very short, if any)
+* Download and navigate into the client configurator folder.
+* Set up a virtual environment to run the python script:
 
-- OS
-- Library version
-- ...
+```bash
+python3 -m venv env
+source env/bin/activate
+python3 -m pip install -r requirements.txt
+```
 
-### Installation
+* Sign into Azure CLI `az login`
+* Run the python script within the client folder with information from the existing (on-premises) cluster:
 
-(ideally very short)
+```python
+python3 client_configurator.py --subscription-id <subcriptionId> --cluster-resource-group <clusterResourceGroup> --cluster-name <clusterName> --initial-password <initialPassword> --vnet-resource-group <vnetResourceGroup> --vnet-name <vnetName> --subnet-name <subnetName> --location <location> --seed-nodes <seed1 seed2 seed3> --data-center-name <dataCenterName> --sku <sku>
+```
 
-- npm install [package name]
-- mvn install
-- ...
+> [!NOTE]
+>
+> ```bash
+> --seed-nodes, the seed nodes of the existing datacenters in your on-premises or self-hosted Cassandra cluster.
+> --data-center-name: The data center name of your Azure Managed Instance cluster.
+> ```
 
-### Quickstart
-(Add steps to get up and running quickly)
+* The Python script produces a tar archive named `install_certs.tar.gz`.
+        * Unpack this folder into `/etc/cassandra/` on each node.
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+    ```bash
+    sudo tar -xzvf install_certs.tar.gz -C /etc/cassandra
+    ```
 
+* Inside the directory from step 5, run `sudo ./install_certs.sh`.
+        *Ensure that the script is executable by running `sudo chmod +x install_certs.sh`.
+        *The script installs and point Cassandra towards the new certs needed to connect to the Azure Managed Instance cluster.
+        *It then prompts user to restart Cassandra.
+        :::image type="content" source="./media/script-result.png" alt-text="Screenshot of the result of running the script":::
 
-## Demo
+* Once Cassandra has finished restarting on all nodes, check `nodetool status`. Both datacenters should appear in the list, with their nodes in the UN (Up/Normal) state.
 
-A demo app is included to show how to use the project.
+## Next steps
 
-To run the demo, follow these steps:
-
-(Add steps to start up the demo)
-
-1.
-2.
-3.
-
-## Resources
-
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
+To learn more about Azure Managed Instance for Apache Cassandra, please visit our [product page](https://learn.microsoft.com/azure/managed-instance-apache-cassandra/configure-hybrid-cluster) and [documentation](https://learn.microsoft.com/azure/managed-instance-apache-cassandra/).
