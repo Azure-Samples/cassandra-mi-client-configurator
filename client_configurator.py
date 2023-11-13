@@ -41,7 +41,7 @@ parser.add_argument('--location', type=str, required=True, help='Location of the
 parser.add_argument('--seed-nodes', nargs='+', type=str, required=True, help='Seed nodes of existing cluster')
 
 # Data center args
-parser.add_argument('--dc-name', nargs='+', type=str, required=True, help='Data center name(s) of the on-prem cluster')
+parser.add_argument('--dc-name', nargs='+', type=str, required=True, help='Data center name(s) of the on-prem cluster (separated by spaces)')
 parser.add_argument('--mi-dc-name', type=str, required=True, help='Data center name of the Azure managed cluster')
 parser.add_argument('--node-count', type=int, default=3, help='Node count of the Azure managed cluster')
 parser.add_argument('--sku', type=str, required=True, help='SKU to use for the nodes of the Azure managed cluster')
@@ -303,7 +303,7 @@ with CosmosDBManagementClient(credential=DefaultAzureCredential(), subscription_
                         delegated_management_subnet_id=subnet_id,                     
                         gossip_certificates=managed_cluster_certs,
                         external_seed_nodes=[SeedNode(ip_address=seed_node) for seed_node in seed_nodes],
-                        external_data_centers=[dc_name],
+                        external_data_centers=dc_name,
                         external_gossip_certificates=[Certificate(pem=gossip_certificates_file.read())]
                     )
                 )
