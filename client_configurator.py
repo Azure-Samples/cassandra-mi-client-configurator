@@ -304,6 +304,7 @@ with CosmosDBManagementClient(credential=DefaultAzureCredential(), subscription_
                         gossip_certificates=managed_cluster_certs,
                         external_seed_nodes=[SeedNode(ip_address=seed_node) for seed_node in seed_nodes],
                         external_data_centers=dc_name,
+                        auto_replicate="AllKeyspaces",
                         external_gossip_certificates=[Certificate(pem=gossip_certificates_file.read())]
                     )
                 )
